@@ -25,12 +25,12 @@ body{
 	background: var(--primary-color);
 }
 
-/* ==== Header and Typing Area CSS ==== */
+/* ==== Header CSS ==== */
 .header, .typingArea{
 	color: var(--text-color);
 }
 
-.header, .typingForm{
+.header, .chatList .message, .typingForm{
 	max-width: 1000px;
 	margin: 0 auto;
 }
@@ -102,6 +102,104 @@ body{
 	background: var(--primary-color);
 }
 
+/* ==== Chat List CSS ==== */
+.chatList{
+	padding: 2rem 1rem 12rem;
+	max-height: 100vh;
+	overflow-y: auto;
+}
+
+.chatList .message.incoming{
+	margin-top: 1.5rem;
+}
+
+.chatList .message .messageContent{
+	display: flex;
+	gap: 1.5rem;
+	width: 100%;
+	align-items: center;
+}
+
+.chatList .message .avatar{
+	width: 40px;
+	height: 40px;
+	object-fit: cover;
+	border-radius: 50%;
+	align-self: flex-start;
+}
+
+.chatList .message.loading .avatar{
+	animation: rotate 3s linear infinite;
+}
+
+/* ==== Rotating the star while awaiting for the response ==== */
+@keyframes rotate{
+	100%{
+		transform: rotate(360deg);
+	}
+}
+
+.chatList .message .text{
+	color: var(--text-color);
+}
+
+.chatList .message.loading .text{
+	display: none;
+}
+
+.chatList .message .icon{
+	height: 35px;
+	width: 35px;
+	display: flex;
+	cursor: pointer;
+	font-size: 1.25rem;
+	margin-left: 3.5rem;
+	align-items: center;
+	border-radius: 50%;
+	justify-content: center;
+	color: var(--text-color);
+	visibility: hidden;
+}
+
+.chatList .message:hover .icon{
+	visibility: visible;
+}
+
+.chatList .message .icon:hover{
+	background: var(--secondary-color);
+}
+
+.chatList .loadingIndicator{
+	display: flex;
+	width: 100%;
+	gap: 0.8rem;
+	flex-direction: column;
+}
+
+.chatList .loadingIndicator .loadingBar{
+	height: 11px;
+	width: 100%;
+	border-radius: 0.14rem;
+	background: linear-gradient(to right, #4285F4, var(--primary-color), #4285F4);
+	animation: bars 4s linear infinite;
+}
+
+.chatList .loadingIndicator .loadingBar:last-child{
+	width: 70%;
+}
+
+/* ==== Bars Animation while waiting the response ==== */
+@keyframes bars{
+	0% {
+		background-position: -800px 0;
+	}
+
+	100% {
+		background-position: 800px 0;
+	}
+}
+
+/* ==== Typing Area CSS ==== */
 .typingArea{
 	position: fixed;
 	width: 100%;
