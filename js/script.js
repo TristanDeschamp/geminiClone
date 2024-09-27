@@ -58,7 +58,7 @@ function showLoadingAnimation() {
 	const html = `<div class="messageContent">
 							<img src="assets/gemini.svg" alt="Gemini Icon" class="avatar">
 							<p class="text"></p>
-							<div class="loadingIndicator">
+							<div class="loadingIndicator"> 
 								<div class="loadingBar"></div>
 								<div class="loadingBar"></div>
 								<div class="loadingBar"></div>
@@ -69,7 +69,27 @@ function showLoadingAnimation() {
 	const incomingMessageDiv = createMessageElement(html, "incoming", "loading");
 	chatList.appendChild(incomingMessageDiv);
 
+	const copyIcon = incomingMessageDiv.querySelector('.icon');
+	copyIcon.addEventListener('click', () => copyMessage(copyIcon));
+
 	generateAPIResponse(incomingMessageDiv);
+}
+
+function copyMessage(copyIcon) {
+	const messageText = copyIcon.parentElement.querySelector(".text").innerText;
+
+	if (messageText.trim() !== "") {
+		navigator.clipboard.writeText(messageText)
+			.then(() => {
+				copyIcon.innerText = "done"; // Icône mise à jour
+				setTimeout(() => copyIcon.innerText = "content_copy", 1000);
+			})
+			.catch(err => {
+				console.error('Erreur lors de la copie : ', err);
+			});
+	} else {
+		console.error('Aucun texte à copier');
+	}
 }
 
 function handleOutgoingChat() {
