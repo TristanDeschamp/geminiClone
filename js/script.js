@@ -15,6 +15,19 @@ function createMessageElement(content, ...classes) {
 	return div;
 }
 
+function showTypingEffect(text, textElement) {
+	const words = text.split(' ');
+	let currentWordIndex = 0; 
+
+	const typingInterval = setInterval(() => {
+		textElement.innerText += (currentWordIndex === 0 ? '' : ' ') + words[currentWordIndex++];
+
+		if (currentWordIndex === words.length) {
+			clearInterval(typingInterval);
+		}
+	}, 75);
+}
+
 async function generateAPIResponse(incomingMessageDiv) {
 	const textElement = incomingMessageDiv.querySelector(".text");
 
@@ -33,7 +46,7 @@ async function generateAPIResponse(incomingMessageDiv) {
 		const data = await response.json();
 
 		const apiResponse = data?.candidates[0].content.parts[0].text;
-		textElement.innerText = apiResponse;
+		showTypingEffect(apiResponse, textElement);
 	} catch (error) {
 		console.log(error);
 	} finally {
