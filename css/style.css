@@ -20,6 +20,16 @@
 	--secondary-hover-color: #444;
 }
 
+.light_mode{
+	/* ==== Colors for light mode ==== */
+	--text-color: #222;
+	--subheading-color: #A0A0A0;
+	--placeholder-color: #6C6C6C;
+	--primary-color: #FFF;
+	--secondary-color: #E9EEF6;
+	--secondary-hover-color: #DBE1EA;
+}
+
 /* ==== Global Styling ==== */
 body{
 	background: var(--primary-color);
@@ -107,6 +117,7 @@ body{
 	padding: 2rem 1rem 12rem;
 	max-height: 100vh;
 	overflow-y: auto;
+	scrollbar-color: #999 transparent;
 }
 
 .chatList .message.incoming{
@@ -161,7 +172,7 @@ body{
 	visibility: hidden;
 }
 
-.chatList .message:hover .icon{
+.chatList .message:not(.loading):hover .icon:not(.hide){
 	visibility: visible;
 }
 
