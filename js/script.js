@@ -1,77 +1,82 @@
-import config from "./config.js";
+import config from "./config.js"; // Importation de la configuration contenant l'API key
 
-const typingForm = document.querySelector(".typingForm");
-const chatList = document.querySelector(".chatList");
-const toggleThemeButton = document.querySelector("#toggleThemeButton");
+// Sélection des éléments du DOM
+const typingForm = document.querySelector(".typingForm"); // Formulaire de saisie de message
+const chatList = document.querySelector(".chatList"); // Liste des messages
+const toggleThemeButton = document.querySelector("#toggleThemeButton"); // Bouton pour changer le thème
 
-let userMessage = null;
+let userMessage = null; // Variable pour stocker le message de l'utilisateur
 
-const API_KEY = config.apiKey;
-const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${API_KEY}`;
+const API_KEY = config.apiKey; // Clé API pour accéder au service de Google Gemini
+const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${API_KEY}`; // URL de l'API
 
+// Fonction pour charger les données du localStorage
 function loadLocalStorageData() {
-	const savedChats = localStorage.getItem("savedChats");
-	const isLightMode = (localStorage.getItem("themeColor") === "light_mode");
+	const savedChats = localStorage.getItem("savedChats"); // Récupération des messages sauvegardés
+	const isLightMode = (localStorage.getItem("themeColor") === "light_mode"); // Vérification du thème actuel
+	document.body.classList.toggle("light_mode", isLightMode); // Application du thème
+	toggleThemeButton.innerText = isLightMode ? "dark_mode" : "light_mode"; // Mise à jour de l'icône
 	
-	document.body.classList.toggle("light_mode", isLightMode);
-	toggleThemeButton.innerText = isLightMode ? "dark_mode" : "light_mode";
-
-	chatList.innerHTML = savedChats || "";
-	chatList.scrollTo(0, chatList.scrollHeight);
+	chatList.innerHTML = savedChats || ""; // Affichage des messages sauvegardés
+	chatList.scrollTo(0, chatList.scrollHeight); // Défilement vers le bas de la liste des messages
 }
 
-loadLocalStorageData();
+loadLocalStorageData(); // Chargement des données au démarrage
 
+// Fonction pour créer un élément de message
 function createMessageElement(content, ...classes) {
-	const div = document.createElement("div");
-	div.classList.add("message", ...classes);
-	div.innerHTML = content;
-	return div;
+	const div = document.createElement("div"); // Création d'un div pour le message
+	div.classList.add("message", ...classes); // Ajout des classes CSS
+	div.innerHTML = content; // Insertion du contenu HTML
+	return div; // Retourne l'élément créé
 }
 
+// Fonction pour afficher l'effet de saisie
 function showTypingEffect(text, textElement, incomingMessageDiv) {
-	const words = text.split(' '); 
-	let currentWordIndex = 0; 
+	const words = text.split(' '); // Séparation du texte en mots
+	let currentWordIndex = 0; // Index du mot actuel
 
 	const typingInterval = setInterval(() => {
-		textElement.innerText += (currentWordIndex === 0 ? '' : ' ') + words[currentWordIndex++];
-		incomingMessageDiv.querySelector(".icon").classList.add("hide");
+		textElement.innerText += (currentWordIndex === 0 ? '' : ' ') + words[currentWordIndex++]; // Ajout progressif des mots
+		incomingMessageDiv.querySelector(".icon").classList.add("hide"); // Masquage de l'icône pendant la saisie
 
 		if (currentWordIndex === words.length) {
-			clearInterval(typingInterval);
-			incomingMessageDiv.querySelector(".icon").classList.remove("hide");
-			localStorage.setItem("savedChats", chatList.innerHTML);
+			clearInterval(typingInterval); // Arrêt de l'intervalle une fois tous les mots ajoutés
+			incomingMessageDiv.querySelector(".icon").classList.remove("hide"); // Affichage de l'icône
+			localStorage.setItem("savedChats", chatList.innerHTML); // Sauvegarde des messages dans le localStorage
 		}
-		chatList.scrollTo(0, chatList.scrollHeight);
-	}, 75);
+		chatList.scrollTo(0, chatList.scrollHeight); // Défilement vers le bas de la liste des messages
+	}, 75); // Intervalle de 75ms entre chaque mot
 }
 
+// Fonction pour générer une réponse de l'API Gemini
 async function generateAPIResponse(incomingMessageDiv) {
-	const textElement = incomingMessageDiv.querySelector(".text");
+	const textElement = incomingMessageDiv.querySelector(".text"); // Sélection de l'élément texte du message entrant
 
 	try {
 		const response = await fetch(API_URL, {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers: { "Content-Type": "application/json" }, // En-têtes de la requête
 			body: JSON.stringify({
 				contents: [{
 					role: "user",
-					parts: [{ text: userMessage }]
+					parts: [{ text: userMessage }] // Message de l'utilisateur envoyé à l'API
 				}]
 			})
 		});
 
-		const data = await response.json();
+		const data = await response.json(); // Conversion de la réponse en JSON
 
-		const apiResponse = data?.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, '$1');
-		showTypingEffect(apiResponse, textElement, incomingMessageDiv);
+		const apiResponse = data?.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, '$1'); // Extraction et formatage de la réponse de l'API
+		showTypingEffect(apiResponse, textElement, incomingMessageDiv); // Affichage de la réponse avec effet de saisie
 	} catch (error) {
-		console.log(error);
+		console.log(error); // Affichage de l'erreur en cas de problème
 	} finally {
-		incomingMessageDiv.classList.remove("loading");
+		incomingMessageDiv.classList.remove("loading"); // Suppression de la classe "loading"
 	}
 }
 
+// Fonction pour afficher l'animation de chargement
 function showLoadingAnimation() {
 	const html = `<div class="messageContent">
 							<img src="assets/gemini.svg" alt="Gemini Icon" class="avatar">
@@ -84,60 +89,64 @@ function showLoadingAnimation() {
 						</div>
 						<span class="icon material-symbols-rounded">content_copy</span>`;
 
-	const incomingMessageDiv = createMessageElement(html, "incoming", "loading");
-	chatList.appendChild(incomingMessageDiv);
+	const incomingMessageDiv = createMessageElement(html, "incoming", "loading"); // Création de l'élément de message entrant avec animation de chargement
+	chatList.appendChild(incomingMessageDiv); // Ajout du message à la liste
 
-	chatList.scrollTo(0, chatList.scrollHeight);
+	chatList.scrollTo(0, chatList.scrollHeight); // Défilement vers le bas de la liste des messages
 
-	const copyIcon = incomingMessageDiv.querySelector('.icon');
-	copyIcon.addEventListener('click', () => copyMessage(copyIcon));
+	const copyIcon = incomingMessageDiv.querySelector('.icon'); // Sélection de l'icône de copie
+	copyIcon.addEventListener('click', () => copyMessage(copyIcon)); // Ajout de l'événement de copie
 
-	generateAPIResponse(incomingMessageDiv);
+	generateAPIResponse(incomingMessageDiv); // Génération de la réponse de l'API
 }
 
+// Fonction pour copier le message dans le presse-papier
 function copyMessage(copyIcon) {
-	const messageText = copyIcon.parentElement.querySelector(".text").innerText;
+	const messageText = copyIcon.parentElement.querySelector(".text").innerText;  // Sélection du texte du message
 
 	if (messageText.trim() !== "") {
-		navigator.clipboard.writeText(messageText)
+		navigator.clipboard.writeText(messageText) // Copie du texte dans le presse-papiers
 			.then(() => {
 				copyIcon.innerText = "done"; // Icône mise à jour
-				setTimeout(() => copyIcon.innerText = "content_copy", 1000);
+				setTimeout(() => copyIcon.innerText = "content_copy", 1000); // Réinitialisation de l'icône après 1 seconde
 			})
 			.catch(err => {
-				console.error('Erreur lors de la copie : ', err);
+				console.error('Erreur lors de la copie : ', err); // Affichage de l'erreur en cas de problème
 			});
 	} else {
-		console.error('Aucun texte à copier');
+		console.error('Aucun texte à copier'); // Message d'erreur si le texte est vide
 	}
 }
 
+// Fonction pour gérer l'envoi des messages
 function handleOutgoingChat() {
-	userMessage = typingForm.querySelector(".typingInput").value.trim();
-	if (!userMessage) return;
+	userMessage = typingForm.querySelector(".typingInput").value.trim();  // Récupération du message de l'utilisateur
+	if (!userMessage) return; // Si le message est vide, on arrête la fonction
 
 	const html = `<div class="messageContent">
 							<img src="assets/user.jpg" alt="User Image Of A Man" class="avatar">
 							<p class="text"></p>
 						</div>`;
 
-	const outgoingMessageDiv = createMessageElement(html, "outgoing");
-	outgoingMessageDiv.querySelector(".text").innerText = userMessage;
-	chatList.appendChild(outgoingMessageDiv);
+	const outgoingMessageDiv = createMessageElement(html, "outgoing"); // Création de l'élément de message sortant
+	outgoingMessageDiv.querySelector(".text").innerText = userMessage; // Insertion du texte du message
+	chatList.appendChild(outgoingMessageDiv); // Ajout du message à la liste
 
-	typingForm.reset();
-	chatList.scrollTo(0, chatList.scrollHeight);
-	setTimeout(showLoadingAnimation, 500);
+	typingForm.reset(); // Réinitialisation du formulaire de saisie
+	chatList.scrollTo(0, chatList.scrollHeight); // Défilement vers le bas de la liste des messages
+	setTimeout(showLoadingAnimation, 500); // Affichage de l'animation de chargement après 500ms
 }
 
+// Gestion du changement de thème
 toggleThemeButton.addEventListener("click", () => {
-	const isLightmode = document.body.classList.toggle("light_mode");
-	localStorage.setItem("themeColor", isLightmode ? "light_mode" : "dark_mode");
-	toggleThemeButton.innerText = isLightmode ? "dark_mode" : "light_mode"
+	const isLightmode = document.body.classList.toggle("light_mode"); // Changement de thème
+	localStorage.setItem("themeColor", isLightmode ? "light_mode" : "dark_mode"); // Sauvegarde du thème dans le localStorage
+	toggleThemeButton.innerText = isLightmode ? "dark_mode" : "light_mode"; // Mise à jour du texte du bouton
 })
 
+// Gestion de l'envoi du formulaire
 typingForm.addEventListener("submit", (e) => {
-	e.preventDefault();
+	e.preventDefault(); // Empêche le rechargement de la page
 
-	handleOutgoingChat();
+	handleOutgoingChat(); // Gestion de l'envoi du message
 });
