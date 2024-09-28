@@ -46,9 +46,13 @@ body{
 }
 
 .header{
-	/* margin-top: 7vh; */
+	margin-top: 7vh;
 	padding: 1rem;
+}
+
+body.hideHeader .header{
 	display: none;
+	margin-top: 0;
 }
 
 .header :where(.title, .subtitle){

@@ -4,6 +4,7 @@ import config from "./config.js"; // Importation de la configuration contenant l
 const typingForm = document.querySelector(".typingForm"); // Formulaire de saisie de message
 const chatList = document.querySelector(".chatList"); // Liste des messages
 const toggleThemeButton = document.querySelector("#toggleThemeButton"); // Bouton pour changer le thème
+const deleteChatButton = document.querySelector("#deleteChatButton"); // Bouton pour supprimer les messages
 
 let userMessage = null; // Variable pour stocker le message de l'utilisateur
 
@@ -18,6 +19,8 @@ function loadLocalStorageData() {
 	toggleThemeButton.innerText = isLightMode ? "dark_mode" : "light_mode"; // Mise à jour de l'icône
 	
 	chatList.innerHTML = savedChats || ""; // Affichage des messages sauvegardés
+
+	document.body.classList.toggle("hideHeader", savedChats);
 	chatList.scrollTo(0, chatList.scrollHeight); // Défilement vers le bas de la liste des messages
 }
 
@@ -134,6 +137,7 @@ function handleOutgoingChat() {
 
 	typingForm.reset(); // Réinitialisation du formulaire de saisie
 	chatList.scrollTo(0, chatList.scrollHeight); // Défilement vers le bas de la liste des messages
+	document.body.classList.add("hideHeader"); // Cache le header quand la conversation commence
 	setTimeout(showLoadingAnimation, 500); // Affichage de l'animation de chargement après 500ms
 }
 
@@ -143,6 +147,14 @@ toggleThemeButton.addEventListener("click", () => {
 	localStorage.setItem("themeColor", isLightmode ? "light_mode" : "dark_mode"); // Sauvegarde du thème dans le localStorage
 	toggleThemeButton.innerText = isLightmode ? "dark_mode" : "light_mode"; // Mise à jour du texte du bouton
 })
+
+// Supprime du localStorage tout les messages quand le bouton est cliqué
+deleteChatButton.addEventListener("click", () => {
+	if (confirm("Etee-vous sure de vouloir supprimer tous les messages ?")) {
+		localStorage.removeItem("savedChats");
+		loadLocalStorageData();
+	}
+});
 
 // Gestion de l'envoi du formulaire
 typingForm.addEventListener("submit", (e) => {
