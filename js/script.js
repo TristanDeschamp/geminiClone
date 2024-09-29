@@ -3,10 +3,12 @@ import config from "./config.js"; // Importation de la configuration contenant l
 // Sélection des éléments du DOM
 const typingForm = document.querySelector(".typingForm"); // Formulaire de saisie de message
 const chatList = document.querySelector(".chatList"); // Liste des messages
+const suggestions = document.querySelectorAll(".suggestionList .suggestion")
 const toggleThemeButton = document.querySelector("#toggleThemeButton"); // Bouton pour changer le thème
 const deleteChatButton = document.querySelector("#deleteChatButton"); // Bouton pour supprimer les messages
 
 let userMessage = null; // Variable pour stocker le message de l'utilisateur
+let isResponseGenerating = false;
 
 const API_KEY = config.apiKey; // Clé API pour accéder au service de Google Gemini
 const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${API_KEY}`; // URL de l'API
@@ -45,6 +47,7 @@ function showTypingEffect(text, textElement, incomingMessageDiv) {
 
 		if (currentWordIndex === words.length) {
 			clearInterval(typingInterval); // Arrêt de l'intervalle une fois tous les mots ajoutés
+			isResponseGenerating = false;
 			incomingMessageDiv.querySelector(".icon").classList.remove("hide"); // Affichage de l'icône
 			localStorage.setItem("savedChats", chatList.innerHTML); // Sauvegarde des messages dans le localStorage
 		}
@@ -73,6 +76,7 @@ async function generateAPIResponse(incomingMessageDiv) {
 		const apiResponse = data?.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, '$1'); // Extraction et formatage de la réponse de l'API
 		showTypingEffect(apiResponse, textElement, incomingMessageDiv); // Affichage de la réponse avec effet de saisie
 	} catch (error) {
+		isResponseGenerating = false;
 		console.log(error); // Affichage de l'erreur en cas de problème
 	} finally {
 		incomingMessageDiv.classList.remove("loading"); // Suppression de la classe "loading"
@@ -123,8 +127,10 @@ function copyMessage(copyIcon) {
 
 // Fonction pour gérer l'envoi des messages
 function handleOutgoingChat() {
-	userMessage = typingForm.querySelector(".typingInput").value.trim();  // Récupération du message de l'utilisateur
-	if (!userMessage) return; // Si le message est vide, on arrête la fonction
+	userMessage = typingForm.querySelector(".typingInput").value.trim() || userMessage;  // Récupération du message de l'utilisateur
+	if (!userMessage || isResponseGenerating) return; // Si le message est vide, on arrête la fonction
+
+	isResponseGenerating = true;
 
 	const html = `<div class="messageContent">
 							<img src="assets/user.jpg" alt="User Image Of A Man" class="avatar">
@@ -140,6 +146,13 @@ function handleOutgoingChat() {
 	document.body.classList.add("hideHeader"); // Cache le header quand la conversation commence
 	setTimeout(showLoadingAnimation, 500); // Affichage de l'animation de chargement après 500ms
 }
+
+suggestions.forEach(suggestion => {
+	suggestion.addEventListener("click", () => {
+		userMessage = suggestion.querySelector(".text").innerText;
+		handleOutgoingChat();
+	});
+});
 
 // Gestion du changement de thème
 toggleThemeButton.addEventListener("click", () => {
